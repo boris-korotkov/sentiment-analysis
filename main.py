@@ -49,13 +49,8 @@ def scrape_reviews(url):
 
 # Function to perform sentiment analysis
 
+
 def analyze_sentiment(reviews):
-    sentiment_analyzer = pipeline('sentiment-analysis')
-    results = sentiment_analyzer(reviews)
-    return results
-
-
-def analyze_sentiment_longformer(reviews):
     # Load the tokenizer and model
     tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
     model = BartForSequenceClassification.from_pretrained("facebook/bart-large-cnn")
@@ -95,16 +90,58 @@ def display_results(sentiment_results, reviews):
     for i in range(-1, -min(6, len(sorted_results)), -1):
         print(f"{-i}. {sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}")
         
+# Function to save sentiment analysis results as an HTML file
+def create_html_file(reviews, sentiment_results):
+    # Combine sentiment results with their corresponding reviews
+    results_with_reviews = list(zip(sentiment_results, reviews))
+    
+    # Sort results based on scores
+    sorted_results = sorted(results_with_reviews, key=lambda x: x[0]['score'], reverse=True)
+
+    html_content = "<html><head><title>Sentiment Analysis Results</title></head><body>"
+
+    # Display average sentiment score
+    average_sentiment = sum([result[0]['score'] for result in sorted_results]) / len(sorted_results)
+    html_content += f"<h2>Average Sentiment Score: {average_sentiment:.4f}</h2>"
+
+    # Display top 5 positive reviews with content and score
+    html_content += "<h3>Top 5 Positive Reviews:</h3><ol>"
+    for i in range(min(5, len(sorted_results))):
+        html_content += f"<li>{sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}</li>"
+    html_content += "</ol>"
+
+    # Display top 5 negative reviews with content and score
+    html_content += "<h3>Top 5 Negative Reviews:</h3><ol>"
+    for i in range(-1, -min(6, len(sorted_results)), -1):
+        html_content += f"<li>{sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}</li>"
+    html_content += "</ol>"
+
+    html_content += "</body></html>"
+
+    return html_content
+
+def save_html_file(html_content, file_path="sentiment_analysis_results.html"):
+    with open(file_path, "w", encoding="utf-8") as html_file:
+        html_file.write(html_content)
+    print(f"HTML file saved at: {file_path}")
 
 # Main execution
 if __name__ == "__main__":
     trustpilot_url = "https://www.trustpilot.com/review/sunlife.ca"
     reviews = scrape_reviews(trustpilot_url)
     
-    # print the reviews length
-    print(len(reviews))
+    # print the reviews length with the wording 'total reviews number'
+    print(f"Total reviews number: {len(reviews)}")
 
-    #sentiment_results = analyze_sentiment(reviews)
-    sentiment_results = analyze_sentiment_longformer(reviews)
-    display_results(sentiment_results,reviews)
-    #display_results_old(sentiment_results)
+    # Perform sentiment analysis
+    sentiment_results = analyze_sentiment(reviews)
+    
+    # Create HTML content
+    html_content = create_html_file(reviews, sentiment_results)
+
+    # Save HTML file
+    save_html_file(html_content)
+
+    # Display sentiment analysis results in the terminal window
+    #display_results(sentiment_results,reviews)
+    
