@@ -21,7 +21,7 @@ def get_total_pages(url):
 
 # Get reviews by page number
 def scrape_reviews(url):
-    reviews = []
+    reviews_with_titles  = []
     total_pages = get_total_pages(url)
     
     for page in range(1, total_pages + 1):
@@ -33,19 +33,23 @@ def scrape_reviews(url):
             
             # Update the class names based on the current HTML structure
             review_elements = soup.find_all('p', class_='typography_body-l__KUYFJ typography_appearance-default__AAY17 typography_color-black__5LYEn')
+            title_elements = soup.find_all('h2', class_='typography_heading-s__f7029 typography_appearance-default__AAY17')
             
             # Check if there are any reviews on the page
-            if review_elements:
-                reviews.extend([review.text.strip() for review in review_elements])
+            if review_elements and title_elements:
+                reviews_with_titles.extend([(title.text.strip(), review.text.strip()) for title, review in zip(title_elements, review_elements)])
             else:
-                # If no reviews are found on the page, break the loop
+                # If no reviews or titles are found on the page, break the loop
                 break
+
+            
+           
         else:
             # If the request is unsuccessful, print an error message
             print(f"Failed to fetch reviews from {page_url}. Status code: {response.status_code}")
             break
 
-    return reviews
+    return reviews_with_titles
 
 # Function to perform sentiment analysis
 
@@ -91,12 +95,9 @@ def display_results(sentiment_results, reviews):
         print(f"{-i}. {sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}")
         
 # Function to save sentiment analysis results as an HTML file
-def create_html_file(reviews, sentiment_results):
-    # Combine sentiment results with their corresponding reviews
-    results_with_reviews = list(zip(sentiment_results, reviews))
-    
+def create_html_file(results_with_titles):
     # Sort results based on scores
-    sorted_results = sorted(results_with_reviews, key=lambda x: x[0]['score'], reverse=True)
+    sorted_results = sorted(results_with_titles, key=lambda x: x[0]['score'], reverse=True)
 
     html_content = "<html><head><title>Sentiment Analysis Results</title></head><body>"
 
@@ -104,16 +105,18 @@ def create_html_file(reviews, sentiment_results):
     average_sentiment = sum([result[0]['score'] for result in sorted_results]) / len(sorted_results)
     html_content += f"<h2>Average Sentiment Score: {average_sentiment:.4f}</h2>"
 
-    # Display top 5 positive reviews with content and score
+    # Display top 5 positive reviews with titles, content, and score
     html_content += "<h3>Top 5 Positive Reviews:</h3><ol>"
     for i in range(min(5, len(sorted_results))):
-        html_content += f"<li>{sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}</li>"
+        title, review = sorted_results[i][1]
+        html_content += f"<li><strong>{title} - Score: {sorted_results[i][0]['score']:.4f}</strong><br/>{review}</li>"
     html_content += "</ol>"
 
-    # Display top 5 negative reviews with content and score
+    # Display top 5 negative reviews with titles, content, and score
     html_content += "<h3>Top 5 Negative Reviews:</h3><ol>"
     for i in range(-1, -min(6, len(sorted_results)), -1):
-        html_content += f"<li>{sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}</li>"
+        title, review = sorted_results[i][1]
+        html_content += f"<li><strong>{title} - Score: {sorted_results[i][0]['score']:.4f}</strong><br/>{review}</li>"
     html_content += "</ol>"
 
     html_content += "</body></html>"
@@ -128,16 +131,16 @@ def save_html_file(html_content, file_path="sentiment_analysis_results.html"):
 # Main execution
 if __name__ == "__main__":
     trustpilot_url = "https://www.trustpilot.com/review/sunlife.ca"
-    reviews = scrape_reviews(trustpilot_url)
+    reviews_with_titles = scrape_reviews(trustpilot_url)
     
-    # print the reviews length with the wording 'total reviews number'
-    print(f"Total reviews number: {len(reviews)}")
+        # Perform sentiment analysis
+    sentiment_results = analyze_sentiment([review[1] for review in reviews_with_titles])
 
-    # Perform sentiment analysis
-    sentiment_results = analyze_sentiment(reviews)
-    
+    # Combine sentiment results with titles and reviews
+    results_with_titles = list(zip(sentiment_results, reviews_with_titles))
+
     # Create HTML content
-    html_content = create_html_file(reviews, sentiment_results)
+    html_content = create_html_file(results_with_titles)
 
     # Save HTML file
     save_html_file(html_content)
