@@ -89,34 +89,47 @@ def display_results(sentiment_results, reviews):
     for i in range(min(5, len(sorted_results))):
         print(f"{i+1}. {sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}")
 
-    # Display top 5 negative reviews with content and score
+    # Display top 5 negative reviews with content and score in the desending order of scores by absolute score value
+    
     print("\nTop 5 Negative Reviews:")
-    for i in range(-1, -min(6, len(sorted_results)), -1):
+    #for i in range(-1, -min(6, len(sorted_results)), -1):
+    for i in range(len(sorted_results) - 1, len(sorted_results) - min(6, len(sorted_results)) - 1, -1):
         print(f"{-i}. {sorted_results[i][1]} - Score: {sorted_results[i][0]['score']:.4f}")
         
 # Function to save sentiment analysis results as an HTML file
 def create_html_file(results_with_titles):
+
+    # Separate positive and negative reviews
+    positive_reviews = [result for result in results_with_titles if result[0]['label'] == 'LABEL_2']
+    negative_reviews = [result for result in results_with_titles if result[0]['label'] == 'LABEL_0']
+
+    # Sort positive reviews based on scores
+    sorted_positive_reviews = sorted(positive_reviews, key=lambda x: x[0]['score'], reverse=True)
+
+    # Sort negative reviews based on the absolute value of scores
+    sorted_negative_reviews = sorted(negative_reviews, key=lambda x: abs(x[0]['score']), reverse=True)
+
     # Sort results based on scores
-    sorted_results = sorted(results_with_titles, key=lambda x: x[0]['score'], reverse=True)
+    # sorted_results = sorted(results_with_titles, key=lambda x: x[0]['score'], reverse=True)
 
     html_content = "<html><head><title>Sentiment Analysis Results</title></head><body>"
 
     # Display average sentiment score
-    average_sentiment = sum([result[0]['score'] for result in sorted_results]) / len(sorted_results)
+    average_sentiment = sum([result[0]['score'] for result in results_with_titles]) / len(results_with_titles)
     html_content += f"<h2>Average Sentiment Score: {average_sentiment:.4f}</h2>"
 
     # Display top 5 positive reviews with titles, content, and score
     html_content += "<h3>Top 5 Positive Reviews:</h3><ol>"
-    for i in range(min(5, len(sorted_results))):
-        title, review = sorted_results[i][1]
-        html_content += f"<li><strong>{title} - Score: {sorted_results[i][0]['score']:.4f}</strong><br/>{review}</li>"
+    for i in range(min(5, len(sorted_positive_reviews))):
+        title, review = sorted_positive_reviews[i][1]
+        html_content += f"<li><strong>{title} - Score: {sorted_positive_reviews[i][0]['score']:.4f}</strong><br/>{review}</li>"
     html_content += "</ol>"
 
-    # Display top 5 negative reviews with titles, content, and score
+    # Display top 5 negative reviews with titles, content, and absolute score
     html_content += "<h3>Top 5 Negative Reviews:</h3><ol>"
-    for i in range(-1, -min(6, len(sorted_results)), -1):
-        title, review = sorted_results[i][1]
-        html_content += f"<li><strong>{title} - Score: {sorted_results[i][0]['score']:.4f}</strong><br/>{review}</li>"
+    for i in range(min(5, len(sorted_negative_reviews))):
+        title, review = sorted_negative_reviews[i][1]
+        html_content += f"<li><strong>{title} - Absolute Score: {abs(sorted_negative_reviews[i][0]['score']):.4f}</strong><br/>{review}</li>"
     html_content += "</ol>"
 
     html_content += "</body></html>"
@@ -136,11 +149,14 @@ if __name__ == "__main__":
         # Perform sentiment analysis
     sentiment_results = analyze_sentiment([review[1] for review in reviews_with_titles])
 
+    # Display results
+    # display_results(sentiment_results, [review[1] for review in reviews_with_titles])
+
     # Combine sentiment results with titles and reviews
-    results_with_titles = list(zip(sentiment_results, reviews_with_titles))
+    results_with_titles_merged = list(zip(sentiment_results, reviews_with_titles))
 
     # Create HTML content
-    html_content = create_html_file(results_with_titles)
+    html_content = create_html_file(results_with_titles_merged)
 
     # Save HTML file
     save_html_file(html_content)
