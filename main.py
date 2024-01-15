@@ -55,19 +55,17 @@ def scrape_reviews(url):
 
 
 def analyze_sentiment(reviews):
-    # Load the tokenizer and model
-    tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
-    model = BartForSequenceClassification.from_pretrained("facebook/bart-large-cnn")
-
-
-
+    
     # Create a sentiment analysis pipeline using the  model
-    sentiment_analyzer = pipeline('sentiment-analysis', model=model, tokenizer=tokenizer)
+    sentiment_analyzer = pipeline('sentiment-analysis')
     print(sentiment_analyzer.model.config)
 
+    # Set the maximum length of the sequence to 512
+    max_length = sentiment_analyzer.tokenizer.model_max_length
+    processed_reviews = [review[:max_length] for review in reviews]
     
-    results = sentiment_analyzer(reviews)
-    return results
+    results = sentiment_analyzer(processed_reviews)
+    return [{'label': result['label'], 'score': result['score']} for result in results]
 
 
 # Function to display results
@@ -100,8 +98,8 @@ def display_results(sentiment_results, reviews):
 def create_html_file(results_with_titles):
 
     # Separate positive and negative reviews
-    positive_reviews = [result for result in results_with_titles if result[0]['label'] == 'LABEL_2']
-    negative_reviews = [result for result in results_with_titles if result[0]['label'] == 'LABEL_0']
+    positive_reviews = [result for result in results_with_titles if result[0]['label'] == 'POSITIVE']
+    negative_reviews = [result for result in results_with_titles if result[0]['label'] == 'NEGATIVE']
 
     # Sort positive reviews based on scores
     sorted_positive_reviews = sorted(positive_reviews, key=lambda x: x[0]['score'], reverse=True)
@@ -114,9 +112,10 @@ def create_html_file(results_with_titles):
 
     html_content = "<html><head><title>Sentiment Analysis Results</title></head><body>"
 
-    # Display average sentiment score
-    average_sentiment = sum([result[0]['score'] for result in results_with_titles]) / len(results_with_titles)
-    html_content += f"<h2>Average Sentiment Score: {average_sentiment:.4f}</h2>"
+    # Display percentage of positive and negative reviews
+    html_content += f"<h2>Percentage of Positive Reviews: {len(positive_reviews) / len(results_with_titles) * 100:.2f}%</h2>"
+    #average_sentiment = sum([result[0]['score'] for result in results_with_titles]) / len(results_with_titles)
+    #html_content += f"<h2>Average Sentiment Score: {average_sentiment:.4f}</h2>"
 
     # Display top 5 positive reviews with titles, content, and score
     html_content += "<h3>Top 5 Positive Reviews:</h3><ol>"
