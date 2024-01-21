@@ -27,6 +27,7 @@ The overall architecture is below.
 To review the results please go to the generated HTML file  [sentiment_analysis_results.html](./sentiment_analysis_results.html), download it, and open from the Downloads folder.
 
 To download the file use the following button:
+
 ![Architecture diagram](/images/download.png)
 
 The result was aligned with the overall rating on the website.
