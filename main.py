@@ -113,7 +113,8 @@ def create_html_file(results_with_titles):
     html_content = "<html><head><title>Sentiment Analysis Results</title></head><body>"
 
     # Display percentage of positive and negative reviews
-    html_content += f"<h2>Percentage of Positive Reviews: {len(positive_reviews) / len(results_with_titles) * 100:.2f}%</h2>"
+    html_content += f"<h2>The analysis of customer reviews from www.trustpilot.com website for Sun Life company</h2>"
+    html_content += f"<h3>Percentage of Positive Reviews: {len(positive_reviews) / len(results_with_titles) * 100:.2f}%</h2>"
     #average_sentiment = sum([result[0]['score'] for result in results_with_titles]) / len(results_with_titles)
     #html_content += f"<h2>Average Sentiment Score: {average_sentiment:.4f}</h2>"
 
