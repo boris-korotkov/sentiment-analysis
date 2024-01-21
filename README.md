@@ -24,10 +24,6 @@ The overall architecture is below.
 
 + Don't trust Chat GPT 100%! Always double check by googling and apply critical thinking. E.g., Chat GPT suggested to use facebook/bart-large-cnn model from Hugging Face hub instead of default one to accomidate token size, but the model performed bad because it was not fine-tuned for sentiment analyis.
 
-To review the results please go to the generated HTML file  [sentiment_analysis_results.html](./sentiment_analysis_results.html), download it, and open from the Downloads folder.
-
-To download the file use the following button:
-
-![Architecture diagram](/images/download.png)
+To see the results please click the link: [sentiment_analysis_results.html](https://htmlpreview.github.io/?https://github.com/boris-korotkov/sentiment-analysis/blob/main/sentiment_analysis_results.html)
 
 The result was aligned with the overall rating on the website.
