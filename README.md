@@ -9,3 +9,9 @@ There are no special skills required as well. The Chat GPT and Github Copilot (o
 2. The next step was to collect these reviews. Since the number of reviews was not significant, I didn't use any database or other storage and simply loaded all of them into memory.
 
 3. As per sentiment analysis, the [Hagging Face](https://huggingface.co/) was the simplest framework to use.
+
+The overall architecture is below.
+
+
+### Key findings
+
